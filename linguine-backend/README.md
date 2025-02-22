@@ -5,6 +5,7 @@ Ensure you have the following installed:
 - [Docker](https://docs.docker.com/get-docker/)
 - Or [Podman](https://podman.io/docs/installation)
 - [Nodemon](https://www.npmjs.com/package/nodemon) (Optional: used for live reloading)
+- [Dbmate](https://github.com/amacneil/dbmate)
 - [The Haskell Toolchain](https://www.haskell.org/ghcup/install/)
 
 ### Setup

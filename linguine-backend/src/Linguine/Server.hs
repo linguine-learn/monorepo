@@ -3,33 +3,41 @@
 module Linguine.Server where
 
 import Linguine.Auth.Register (RegisterAPI, registerApi)
-import Servant.Server
-import Data.Proxy
+import Linguine.Auth.Login (loginApi, LoginAPI)
+
 import Network.Wai.Handler.Warp (run)
+
 import Data.Pool (Pool, newPool, defaultPoolConfig)
+import Data.ByteString.Lazy.Char8 (pack, toStrict)
+import Data.Data (Proxy(Proxy))
+
 import Database.PostgreSQL.Simple (connectPostgreSQL, close, Connection)
+
 import Control.Monad.IO.Class (MonadIO(liftIO))
+
 import Configuration.Dotenv (loadFile, defaultConfig)
 import Configuration.Dotenv.Environment (lookupEnv)
-import Data.ByteString.Lazy.Char8 (pack, toStrict)
 
-type LinguineAPI = RegisterAPI
+import Servant.Server (Server, Application, serve)
+import Servant  ((:<|>)(..))
+
+type LinguineAPI = RegisterAPI :<|> LoginAPI
 
 linguineApi :: Pool Connection -> Server LinguineAPI
-linguineApi conns = do
-  registerApi conns
+linguineApi connectionPool = do
+  registerApi connectionPool :<|> loginApi connectionPool
 
 app :: Pool Connection -> Application
-app conns = serve (Proxy :: Proxy LinguineAPI) $ linguineApi conns
+app connectionPool = serve (Proxy :: Proxy LinguineAPI) $ linguineApi connectionPool
 
 serveLinguine :: IO ()
 serveLinguine = do
   loadFile defaultConfig
-  maybeConnStr <- lookupEnv "POSTGRES_URI"
+  maybeconnectionPooltr <- lookupEnv "POSTGRES_URI"
 
-  case maybeConnStr of
-    Just connStr -> do
-      pool <- liftIO $ newPool $ defaultPoolConfig (connectPostgreSQL $ toStrict (pack connStr)) close 60 10
+  case maybeconnectionPooltr of
+    Just connectionPooltr -> do
+      pool <- liftIO $ newPool $ defaultPoolConfig (connectPostgreSQL $ toStrict (pack connectionPooltr)) close 60 10
       putStrLn "Running on port 3000"
       run 3000 (app pool)
     Nothing ->
