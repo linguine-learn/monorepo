@@ -25,9 +25,9 @@ data RegisterData = RegisterData {
   retypedPassword ::String
 } deriving (Show, Generic, FromJSON)
 
-type RegisterAPI = "auth" :> "register" :> ReqBody '[JSON] RegisterData :> UVerb 'POST '[JSON] '[WithStatus 200 RegisterResult, WithStatus 201 RegisterResult]
+type RegisterAPI = "auth" :> "register" :> ReqBody '[JSON] RegisterData :> UVerb 'POST '[JSON] '[WithStatus 200 RegisterResult, WithStatus 201 RegisterResult, WithStatus 500 RegisterResult]
 
-registerUser :: Pool Connection -> RegisterData -> Handler (Union '[WithStatus 200 RegisterResult, WithStatus 201 RegisterResult])
+registerUser :: Pool Connection -> RegisterData -> Handler (Union '[WithStatus 200 RegisterResult, WithStatus 201 RegisterResult, WithStatus 500 RegisterResult])
 registerUser conns registerData = do
   if (password registerData) == ""
     then respond $ WithStatus @200 RegisterResult { message = "Password must not be empty!" }
@@ -53,7 +53,7 @@ registerUser conns registerData = do
 
       -- TODO: Send verification email so this can be avoided.
       [_] -> respond $ WithStatus @200 RegisterResult { message = "Email already in use!" }
-      _ -> respond $ WithStatus @200 RegisterResult { message = "Unkown error occured." }
+      _ -> respond $ WithStatus @500 RegisterResult { message = "Unkown error occured." }
 
 registerApi :: Pool Connection -> Server RegisterAPI
 registerApi conns = registerUser conns
