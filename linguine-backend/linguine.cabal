@@ -23,6 +23,7 @@ library
 
                       Linguine.Auth.Register,
                       Linguine.Auth.Login,
+                      Linguine.Auth.JWT,
 
                       Linguine.DB.Models,
                       Linguine.DB.Queries,
@@ -39,7 +40,11 @@ library
                       bytestring,
                       dotenv,
                       password,
-                      text
+                      text,
+                      jwt,
+                      containers,
+                      time,
+                      cookie
 
     hs-source-dirs:   src
     default-language: GHC2024

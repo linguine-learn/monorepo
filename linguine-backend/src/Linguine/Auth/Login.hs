@@ -4,8 +4,9 @@
 module Linguine.Auth.Login (loginApi, LoginAPI) where
 
 import qualified Linguine.DB.Queries as DBQ
+import qualified Data.ByteString.Char8 as BSC
 
-import Servant ((:>), ReqBody, JSON, StdMethod(POST), Handler, Server, UVerb, WithStatus (WithStatus), Union, respond)
+import Servant 
 
 import GHC.Generics (Generic)
 
@@ -14,13 +15,14 @@ import Data.Aeson (ToJSON, FromJSON)
 
 import Database.PostgreSQL.Simple (Connection)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Data.Password.Argon2 (checkPassword, mkPassword, PasswordHash (PasswordHash), PasswordCheck (PasswordCheckFail, PasswordCheckSuccess))
-import Linguine.DB.Models (User(user_password))
+import Data.Password.Argon2
+import Linguine.DB.Models (User(user_password, user_id, user_refreshTokenVersion))
 import Data.Text (pack)
-
-
+import Linguine.Auth.JWT (makeJwtPair)
+import Web.Cookie 
 data LoginResult = LoginResult {
-  message :: String
+  message :: String,
+  token :: Maybe String
 } deriving (Show, Generic, ToJSON)
 
 data LoginData  = LoginData {
@@ -28,30 +30,51 @@ data LoginData  = LoginData {
   password :: String
 } deriving (Show, Generic, FromJSON)
 
-type LoginAPI = "auth" :> "login" :> ReqBody '[JSON] LoginData :> UVerb 'POST  '[JSON] '[WithStatus 200 LoginResult, WithStatus 500 LoginResult]
+type LoginAPI = "auth" :> "login" :> 
+    ReqBody '[JSON] LoginData :>
+        UVerb 'POST  '[JSON] '[WithStatus 200 (Headers '[Header "Set-Cookie" String] LoginResult),  WithStatus 500 LoginResult]
 
-loginUser :: Pool Connection -> LoginData -> Handler (Union '[WithStatus 200 LoginResult, WithStatus 500 LoginResult])
+myNoHeader :: LoginResult ->  Headers '[Header "Set-Cookie" String] LoginResult
+myNoHeader loginResult = noHeader loginResult
+
+setRefreshCookie :: String -> LoginResult ->  Headers '[Header "Set-Cookie" String] LoginResult
+setRefreshCookie refreshToken loginResult = addHeader refreshToken loginResult
+
+loginUser :: Pool Connection -> LoginData -> Handler (Union '[WithStatus 200 (Headers '[Header "Set-Cookie" String] LoginResult), WithStatus 500 LoginResult])
 loginUser connectionPool loginData = do
   if (email loginData) == ""
-    then respond $ WithStatus @200 LoginResult { message = "Email must not be empty!" }
+    then respond $ WithStatus @200 $ myNoHeader LoginResult { message = "Email must not be empty!", token = Nothing }
   else if (password loginData) == ""
-    then respond $ WithStatus @200 LoginResult { message = "Password must not be empty!" }
+    then respond $ WithStatus @200 $ myNoHeader LoginResult { message = "Password must not be empty!", token = Nothing }
   else do
     users <- liftIO $ withResource connectionPool $ \conn -> DBQ.getUserByEmail conn (email loginData)
     case users of
       [user] -> do
         let passwordCheck = checkPassword (mkPassword $ pack $ password loginData) (PasswordHash $ pack $ user_password user)
         if passwordCheck == PasswordCheckFail
-          then respond $ WithStatus @200 LoginResult { message = "Invalid username or password." }
+          then respond $ WithStatus @200 $ myNoHeader LoginResult { message = "Invalid username or password.", token = Nothing }
         else if passwordCheck == PasswordCheckSuccess
           then do
-            -- TODO: Generate JWT token pair
-            respond $ WithStatus @200 LoginResult { message = "Success" }
-        else do
-          respond $ WithStatus @500 LoginResult { message = "Unkown error occured." }
+            (accessToken, refreshToken) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
+            
+            let refreshCookieOptions = defaultSetCookie {
+              setCookieName = "refreshToken",
+              setCookieValue = BSC.pack refreshToken,
+              setCookiePath = Just "/",
+              setCookieHttpOnly = True,
+              -- TODO: toggle between True and False depending on environment
+              setCookieSecure = False
+            }
 
-      [] -> respond $ WithStatus @200 LoginResult { message = "Invalid username or password." }
-      _ -> respond $ WithStatus @500 LoginResult { message = "Unkown error occured." }
+            let refreshCookie = BSC.unpack $ renderSetCookieBS refreshCookieOptions
+            liftIO $ print refreshCookie
+
+            respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult { message = "Success", token = Just accessToken }
+        else do
+          respond $ WithStatus @500 LoginResult { message = "Unkown error occured.", token = Nothing }
+
+      [] -> respond $ WithStatus @200 $ myNoHeader LoginResult { message = "Invalid username or password.", token = Nothing }
+      _ -> respond $ WithStatus @500 LoginResult { message = "Unkown error occured.", token = Nothing }
 
 loginApi :: Pool Connection -> Server LoginAPI
 loginApi connectionPool = loginUser connectionPool

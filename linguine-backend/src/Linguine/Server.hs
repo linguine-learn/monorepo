@@ -33,12 +33,18 @@ app connectionPool = serve (Proxy :: Proxy LinguineAPI) $ linguineApi connection
 serveLinguine :: IO ()
 serveLinguine = do
   loadFile defaultConfig
-  maybeconnectionPooltr <- lookupEnv "POSTGRES_URI"
+  maybeConnectionPooltr <- lookupEnv "POSTGRES_URI"
+  maybeAccessSecret <- lookupEnv "ACCESS_SECRET"
+  maybeRefreshSecert <- lookupEnv "REFRESH_SECRET"
 
-  case maybeconnectionPooltr of
-    Just connectionPooltr -> do
+  case (maybeConnectionPooltr, maybeAccessSecret, maybeRefreshSecert) of
+    (Just connectionPooltr, Just _, Just _) -> do
       pool <- liftIO $ newPool $ defaultPoolConfig (connectPostgreSQL $ toStrict (pack connectionPooltr)) close 60 10
       putStrLn "Running on port 3000"
       run 3000 (app pool)
-    Nothing ->
+    (Nothing, _, _) ->
       putStrLn "FAILED TO LOAD POSTGRES_URI"
+    (_, Nothing, _) ->
+      putStrLn "FAILED TO LOAD ACCESS_SECRET"
+    (_, _, Nothing) ->
+      putStrLn "FAILED TO LOAD REFRESH_SECRET"
