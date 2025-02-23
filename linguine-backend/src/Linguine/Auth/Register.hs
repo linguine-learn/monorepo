@@ -42,6 +42,8 @@ registerUser connectionPool registerData = do
     then respond $ WithStatus @200 RegisterResult { message = "Please enter a valid email!" }
   else if (password registerData) == ""
     then respond $ WithStatus @200 RegisterResult { message = "Password must not be empty!" }
+  else if length (password registerData) < 8
+    then respond $ WithStatus @200 RegisterResult { message = "Password must be at least 8 characters!" }
   else if (password registerData) /= (retypedPassword registerData)
     then respond $ WithStatus @200 RegisterResult { message = "Passwords don't match!" }
   else do
