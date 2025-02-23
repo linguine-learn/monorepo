@@ -26,7 +26,7 @@ data RegisterResult = RegisterResult {
 } deriving (Show, Generic, ToJSON)
 
 data RegisterData = RegisterData {
-  name :: String, 
+  userName :: String, 
   email :: String, 
   password ::String, 
   retypedPassword ::String
@@ -38,6 +38,8 @@ registerUser :: Pool Connection -> RegisterData -> Handler (Union '[WithStatus 2
 registerUser connectionPool registerData = do
   if (email registerData) == ""
     then respond $ WithStatus @200 RegisterResult { message = "Email must not be empty!" }
+  else if length (email registerData) > 255
+    then respond $ WithStatus @200 RegisterResult { message = "Please enter a valid email!" }
   else if not $ '@' `elem` (email registerData)
     then respond $ WithStatus @200 RegisterResult { message = "Please enter a valid email!" }
   else if (password registerData) == ""
@@ -46,6 +48,10 @@ registerUser connectionPool registerData = do
     then respond $ WithStatus @200 RegisterResult { message = "Password must be at least 8 characters!" }
   else if (password registerData) /= (retypedPassword registerData)
     then respond $ WithStatus @200 RegisterResult { message = "Passwords don't match!" }
+  else if (userName registerData) == ""
+    then respond $ WithStatus @200 RegisterResult { message = "Username must not be empty!" }
+  else if length (userName registerData) > 25
+    then respond $ WithStatus @200 RegisterResult { message = "Username must be less than 25 characters!" }
   else do
     users <- liftIO $ withResource connectionPool $ \conn -> DBQ.getUserByEmail conn (email registerData)
     case users of
@@ -64,7 +70,7 @@ registerUser connectionPool registerData = do
 
         let createUserData = CreateUser {
           user_email = email registerData,
-          user_name = name registerData,
+          user_name = userName registerData,
           user_password = unpack $ unPasswordHash hashedPassword
         }
         
