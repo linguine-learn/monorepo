@@ -71,7 +71,6 @@ loginUser connectionPool loginData = do
             }
 
             let refreshCookie = BSC.unpack $ renderSetCookieBS refreshCookieOptions
-            liftIO $ print refreshCookie
 
             respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult { message = "Success", token = Just accessToken }
         else do
