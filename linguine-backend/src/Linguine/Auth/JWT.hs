@@ -1,17 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Linguine.Auth.JWT (makeJwtPair) where
+module Linguine.Auth.JWT (makeJwtPair, verifyUser) where
 
 import qualified Web.JWT as J
 import qualified Data.Text as T
 import qualified Data.Map as Map
 
-import Data.Aeson (Value(Number))
+import Data.Aeson (Value(Number), FromJSON (parseJSON))
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Data.Time.Clock.POSIX (getPOSIXTime, posixDayLength)
+import Data.Time.Clock.POSIX (getPOSIXTime, posixDayLength, posixSecondsToUTCTime)
 import System.Environment (getEnv)
 import Web.JWT (hmacSecret)
+import Data.Time (UTCTime)
+import Data.Aeson.Types (parseMaybe)
 
-makeJwtPair :: (Int, Int) -> IO (String, String)
+makeJwtPair :: (Int, Int) -> IO (String, String, UTCTime)
 makeJwtPair (userId, refreshTokenVersion) = do
   currentTime <- liftIO getPOSIXTime
 
@@ -46,5 +48,25 @@ makeJwtPair (userId, refreshTokenVersion) = do
   let refreshKey = hmacSecret . T.pack $ refreshSecret
   let refreshToken = J.encodeSigned refreshKey mempty refreshTokenData 
 
-  pure (T.unpack accessToken, T.unpack refreshToken)
+  pure (T.unpack accessToken, T.unpack refreshToken, posixSecondsToUTCTime currentTime)
 
+verifyUser :: T.Text -> IO (Maybe Int)
+verifyUser accessToken  = do
+  currentTime <- getPOSIXTime
+
+  accessSecret <- liftIO $ getEnv "ACCESS_SECRET"
+  let accessKey = hmacSecret . T.pack $ accessSecret
+
+  let maybeJwt = J.decodeAndVerifySignature (J.toVerify accessKey) accessToken
+
+  case maybeJwt of
+    Just accessJwt -> do 
+      let maybeExpiry = J.exp $ J.claims accessJwt
+
+      pure $ maybeExpiry >>= \expiryTime -> do
+          if (J.secondsSinceEpoch expiryTime) <= currentTime then do
+            let accessClaims = J.unClaimsMap $ J.unregisteredClaims $ J.claims accessJwt
+            let maybeUserIdValue = Map.lookup "userId" accessClaims
+            maybeUserIdValue >>= \userIdValue -> parseMaybe parseJSON userIdValue
+          else Nothing
+    Nothing -> pure Nothing

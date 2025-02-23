@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
+{- TODO: Make auth flow more robust by using throttling -}
+
 module Linguine.Auth.Login (loginApi, LoginAPI) where
 
 import qualified Linguine.DB.Queries as DBQ
@@ -55,13 +57,15 @@ loginUser connectionPool loginData = do
           then respond $ WithStatus @200 $ myNoHeader LoginResult { message = "Invalid username or password.", token = Nothing }
         else if passwordCheck == PasswordCheckSuccess
           then do
-            (accessToken, refreshToken) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
+            (accessToken, refreshToken, refreshTokenExpiryTime) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
             
             let refreshCookieOptions = defaultSetCookie {
               setCookieName = "refreshToken",
               setCookieValue = BSC.pack refreshToken,
               setCookiePath = Just "/",
               setCookieHttpOnly = True,
+              setCookieExpires = Just refreshTokenExpiryTime,
+
               -- TODO: toggle between True and False depending on environment
               setCookieSecure = False
             }
