@@ -48,7 +48,7 @@ makeJwtPair (userId, refreshTokenVersion) = do
   let refreshKey = hmacSecret . T.pack $ refreshSecret
   let refreshToken = J.encodeSigned refreshKey mempty refreshTokenData 
 
-  pure (T.unpack accessToken, T.unpack refreshToken, posixSecondsToUTCTime currentTime)
+  pure (T.unpack accessToken, T.unpack refreshToken, posixSecondsToUTCTime refreshTokenExpireTime)
 
 verifyUser :: T.Text -> IO (Maybe Int)
 verifyUser accessToken  = do
