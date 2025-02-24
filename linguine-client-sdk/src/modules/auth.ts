@@ -1,5 +1,5 @@
 import { assert, lazy, object, size, string } from "superstruct"
-import { Client } from "../client"
+import { Client, FetchParameters } from "../client"
 import { LoginResponse, RegisterResponse } from "../types/responses"
 
 export type RegisterData = {
@@ -73,5 +73,38 @@ export class AuthClient {
     }
 
     return response.message;
+  }
+
+  async refreshAccessToken() {
+
+  }
+
+  async makeFetch<Result>(parameters: FetchParameters): Promise<Result> {
+    const maybeValidAccessToken = this.config.accessTokenStorage.get("accessToken");
+
+    if(!maybeValidAccessToken) {
+      throw new Error("No access token!");
+    }
+
+    const [_, payload] = maybeValidAccessToken.split('.');
+    const accessTokenPayload = JSON.parse(btoa(payload));
+    const isAccessTokenValid = accessTokenPayload["exp"] ? accessTokenPayload["exp"] <= Date.now() : false;
+
+    if(!isAccessTokenValid) {
+        await this.refreshAccessToken();
+    }
+  
+    const accessToken = this.config.accessTokenStorage.get("accessToken");
+
+    if(!accessToken) {
+      throw new Error("Refresh failed");
+    }
+  
+    return this.client.makeFetch({
+      ...parameters,
+      headers: {
+        "Authorization": accessToken,
+      }
+    });
   }
 }

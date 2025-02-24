@@ -7,6 +7,7 @@ export type FetchParameters = {
   searchParams?: URLSearchParams,
   method?: string,
   body?: object,
+  headers?: Record<string, string>
 }
 
 export class Client {
@@ -20,11 +21,12 @@ export class Client {
     };
   }
 
-  async makeFetch<Result>({ route, searchParams, method, body }: FetchParameters): Promise<Result> {
+  async makeFetch<Result>({ route, searchParams, method, body, headers = {} }: FetchParameters): Promise<Result> {
     const parsedRoute = searchParams ? `${this.config.baseUrl}/${route}?${searchParams}` : `${this.config.baseUrl}/${route}`;
+
     const response = await fetch(parsedRoute, {
       method: method ?? "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify(body)
     })
 
