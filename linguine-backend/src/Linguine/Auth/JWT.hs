@@ -18,35 +18,33 @@ makeJwtPair (userId, refreshTokenVersion) = do
   currentTime <- liftIO getPOSIXTime
 
   let fiveteenMinutes = 60 * 15
-  let accessTokenExpireTime = currentTime + fiveteenMinutes
-  let refreshTokenExpireTime = currentTime + posixDayLength * 30
-
-  let accessTokenData = mempty {
-    J.iss = J.stringOrURI "mybox-backend",
-      J.iat = J.numericDate currentTime,
-      J.exp = J.numericDate accessTokenExpireTime,
-      J.unregisteredClaims = J.ClaimsMap $ Map.fromList [
-        ("userId", Number $ fromIntegral userId)
-      ]
-  }
+      accessTokenExpireTime = currentTime + fiveteenMinutes
+      refreshTokenExpireTime = currentTime + posixDayLength * 30
+      accessTokenData = mempty {
+        J.iss = J.stringOrURI "mybox-backend",
+          J.iat = J.numericDate currentTime,
+          J.exp = J.numericDate accessTokenExpireTime,
+          J.unregisteredClaims = J.ClaimsMap $ Map.fromList [
+            ("userId", Number $ fromIntegral userId)
+          ]
+      }
 
   accessSecret <- liftIO $ getEnv "ACCESS_SECRET"
   let accessKey = hmacSecret . T.pack $ accessSecret
-  let accessToken = J.encodeSigned accessKey mempty accessTokenData
-
-  let refreshTokenData = mempty {
-    J.iss = J.stringOrURI "mybox-backend",
-      J.iat = J.numericDate currentTime,
-      J.exp = J.numericDate refreshTokenExpireTime,
-      J.unregisteredClaims = J.ClaimsMap $ Map.fromList [
-        ("userId", Number $ fromIntegral userId),
-        ("version", Number $ fromIntegral refreshTokenVersion)
-      ]
-  }
+      accessToken = J.encodeSigned accessKey mempty accessTokenData
+      refreshTokenData = mempty {
+        J.iss = J.stringOrURI "mybox-backend",
+          J.iat = J.numericDate currentTime,
+          J.exp = J.numericDate refreshTokenExpireTime,
+          J.unregisteredClaims = J.ClaimsMap $ Map.fromList [
+            ("userId", Number $ fromIntegral userId),
+            ("version", Number $ fromIntegral refreshTokenVersion)
+          ]
+      }
 
   refreshSecret <- liftIO $ getEnv "REFRESH_SECRET"
   let refreshKey = hmacSecret . T.pack $ refreshSecret
-  let refreshToken = J.encodeSigned refreshKey mempty refreshTokenData 
+      refreshToken = J.encodeSigned refreshKey mempty refreshTokenData 
 
   pure (T.unpack accessToken, T.unpack refreshToken, posixSecondsToUTCTime refreshTokenExpireTime)
 
@@ -56,8 +54,7 @@ verifyUser accessToken  = do
 
   accessSecret <- liftIO $ getEnv "ACCESS_SECRET"
   let accessKey = hmacSecret . T.pack $ accessSecret
-
-  let maybeJwt = J.decodeAndVerifySignature (J.toVerify accessKey) accessToken
+      maybeJwt = J.decodeAndVerifySignature (J.toVerify accessKey) accessToken
 
   case maybeJwt of
     Just accessJwt -> do 
@@ -66,7 +63,7 @@ verifyUser accessToken  = do
       pure $ maybeExpiry >>= \expiryTime -> do
           if (J.secondsSinceEpoch expiryTime) <= currentTime then do
             let accessClaims = J.unClaimsMap $ J.unregisteredClaims $ J.claims accessJwt
-            let maybeUserIdValue = Map.lookup "userId" accessClaims
+                maybeUserIdValue = Map.lookup "userId" accessClaims
             maybeUserIdValue >>= \userIdValue -> parseMaybe parseJSON userIdValue
           else Nothing
     Nothing -> pure Nothing

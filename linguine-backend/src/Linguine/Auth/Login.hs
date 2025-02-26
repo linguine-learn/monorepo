@@ -69,8 +69,7 @@ loginUser connectionPool loginData = do
               -- TODO: toggle between True and False depending on environment
               setCookieSecure = False
             }
-
-            let refreshCookie = BSC.unpack $ renderSetCookieBS refreshCookieOptions
+                refreshCookie = BSC.unpack $ renderSetCookieBS refreshCookieOptions
 
             respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult { message = "Success", token = Just accessToken }
         else do
