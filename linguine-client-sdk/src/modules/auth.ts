@@ -76,7 +76,7 @@ export class AuthClient {
   }
 
   async refresh() {
-
+    throw new Error("Unimplemented!")
   }
 
   async makeFetch<Result>(parameters: FetchParameters): Promise<Result> {
