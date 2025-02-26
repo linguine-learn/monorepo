@@ -3,7 +3,7 @@
 
 {- TODO: Make auth flow more robust by using throttling -}
 
-module Linguine.Auth.Login (loginApi, LoginAPI) where
+module Linguine.Auth.Login (loginApi, LoginAPI, makeRefreshCookie) where
 
 import qualified Linguine.DB.Queries as DBQ
 import qualified Data.ByteString.Char8 as BSC
@@ -22,6 +22,8 @@ import Linguine.DB.Models (User(user_password, user_id, user_refreshTokenVersion
 import Data.Text (pack)
 import Linguine.Auth.JWT (makeJwtPair)
 import Web.Cookie 
+import Data.Time (UTCTime)
+
 data LoginResult = LoginResult {
   message :: String,
   token :: Maybe String
@@ -42,6 +44,20 @@ myNoHeader loginResult = noHeader loginResult
 setRefreshCookie :: String -> LoginResult ->  Headers '[Header "Set-Cookie" String] LoginResult
 setRefreshCookie refreshToken loginResult = addHeader refreshToken loginResult
 
+makeRefreshCookie :: String -> UTCTime-> String
+makeRefreshCookie refreshToken expiryTime = do
+  let refreshCookieOptions = defaultSetCookie {
+    setCookieName = "refreshToken",
+    setCookieValue = BSC.pack refreshToken,
+    setCookiePath = Just "/",
+    setCookieHttpOnly = True,
+    setCookieExpires = Just expiryTime,
+
+    -- TODO: toggle between True and False depending on environment
+    setCookieSecure = False
+  }
+  BSC.unpack $ renderSetCookieBS refreshCookieOptions
+
 loginUser :: Pool Connection -> LoginData -> Handler (Union '[WithStatus 200 (Headers '[Header "Set-Cookie" String] LoginResult), WithStatus 500 LoginResult])
 loginUser connectionPool loginData = do
   if (email loginData) == ""
@@ -58,18 +74,7 @@ loginUser connectionPool loginData = do
         else if passwordCheck == PasswordCheckSuccess
           then do
             (accessToken, refreshToken, refreshTokenExpiryTime) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
-            
-            let refreshCookieOptions = defaultSetCookie {
-              setCookieName = "refreshToken",
-              setCookieValue = BSC.pack refreshToken,
-              setCookiePath = Just "/",
-              setCookieHttpOnly = True,
-              setCookieExpires = Just refreshTokenExpiryTime,
-
-              -- TODO: toggle between True and False depending on environment
-              setCookieSecure = False
-            }
-                refreshCookie = BSC.unpack $ renderSetCookieBS refreshCookieOptions
+            let refreshCookie = makeRefreshCookie refreshToken refreshTokenExpiryTime
 
             respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult { message = "Success", token = Just accessToken }
         else do
