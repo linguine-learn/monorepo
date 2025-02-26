@@ -23,6 +23,7 @@ library
 
                       Linguine.Auth.Register,
                       Linguine.Auth.Login,
+                      Linguine.Auth.Refresh,
                       Linguine.Auth.JWT,
 
                       Linguine.DB.Models,

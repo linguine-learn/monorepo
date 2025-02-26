@@ -20,12 +20,13 @@ import Configuration.Dotenv.Environment (lookupEnv)
 
 import Servant.Server (Server, Application, serve)
 import Servant  ((:<|>)(..))
+import Linguine.Auth.Refresh (RefreshAPI, refreshApi)
 
-type LinguineAPI = RegisterAPI :<|> LoginAPI
+type LinguineAPI = RegisterAPI :<|> LoginAPI :<|> RefreshAPI
 
 linguineApi :: Pool Connection -> Server LinguineAPI
 linguineApi connectionPool = do
-  registerApi connectionPool :<|> loginApi connectionPool
+  registerApi connectionPool :<|> loginApi connectionPool :<|> refreshApi connectionPool
 
 app :: Pool Connection -> Application
 app connectionPool = serve (Proxy :: Proxy LinguineAPI) $ linguineApi connectionPool
