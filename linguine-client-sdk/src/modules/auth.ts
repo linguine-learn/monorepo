@@ -75,7 +75,7 @@ export class AuthClient {
     return response.message;
   }
 
-  async refreshAccessToken() {
+  async refresh() {
 
   }
 
@@ -91,7 +91,7 @@ export class AuthClient {
     const isAccessTokenValid = accessTokenPayload["exp"] ? accessTokenPayload["exp"] <= Date.now() : false;
 
     if(!isAccessTokenValid) {
-        await this.refreshAccessToken();
+        await this.refresh();
     }
   
     const accessToken = this.config.accessTokenStorage.get("accessToken");
