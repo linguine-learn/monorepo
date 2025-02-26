@@ -1,0 +1,18 @@
+module Linguine
+
+extends "unit.pkl"
+
+local class Section {
+  /// A unique identifier for this course section.
+  id: Int
+  /// The title of this section
+  title: String
+  /// A brief summary of what this section covers
+  description: String
+  /// The language the course is written in
+  sourceLanguage: String
+  /// The language the course is teaching
+  targetLanguage: String
+  /// The units that make up this course section
+  units: List<Unit>
+}

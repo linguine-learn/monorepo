@@ -1,0 +1,10 @@
+open module Linguine
+
+class Unit {
+  /// A unique identifier for this course section unit.
+  id: Int
+  /// A unique identifier for this unit's parent course section.
+  parentSectionId: Int
+  /// The title of this course unit
+  title: String
+}
