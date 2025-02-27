@@ -1,4 +1,4 @@
-import { assert, lazy, object, size, string } from "superstruct"
+import { assert, object, size, string } from "superstruct"
 import { Client, FetchParameters } from "../client"
 import { LoginResponse, RefreshResponse, RegisterResponse } from "../types/responses"
 
