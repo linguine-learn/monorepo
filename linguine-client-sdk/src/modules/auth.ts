@@ -1,6 +1,6 @@
 import { assert, lazy, object, size, string } from "superstruct"
 import { Client, FetchParameters } from "../client"
-import { LoginResponse, RegisterResponse } from "../types/responses"
+import { LoginResponse, RefreshResponse, RegisterResponse } from "../types/responses"
 
 export type RegisterData = {
   email: string,
@@ -76,7 +76,15 @@ export class AuthClient {
   }
 
   async refresh() {
-    throw new Error("Unimplemented!")
+    const response = await this.client.makeFetch<RefreshResponse>({
+      route: "auth/refresh",
+      method: "POST",
+    });
+
+    if(response.token) {
+      this.config.accessTokenStorage.set("accessToken", response.token)
+      return true;
+    }
   }
 
   async makeFetch<Result>(parameters: FetchParameters): Promise<Result> {

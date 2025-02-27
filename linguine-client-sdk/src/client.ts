@@ -1,5 +1,6 @@
 export type ClientConfig = {
-  baseUrl: string
+  baseUrl: string,
+  fetcher: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 }
 
 export type FetchParameters = {
@@ -24,7 +25,7 @@ export class Client {
   async makeFetch<Result>({ route, searchParams, method, body, headers = {} }: FetchParameters): Promise<Result> {
     const parsedRoute = searchParams ? `${this.config.baseUrl}/${route}?${searchParams}` : `${this.config.baseUrl}/${route}`;
 
-    const response = await fetch(parsedRoute, {
+    const response = await this.config.fetcher(parsedRoute, {
       method: method ?? "GET",
       headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify(body)

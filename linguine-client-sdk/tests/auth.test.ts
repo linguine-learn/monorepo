@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
+import makeFetchCookie from 'fetch-cookie';
+
 import * as Linguine from "../src/index";
 
 describe("Auth", () => {
+  const fetcher = makeFetchCookie(fetch);
   const client = new Linguine.Client({
-    baseUrl: "http://localhost:3000/"
+    baseUrl: "http://localhost:3000/",
+    fetcher
   })
 
   it("should create an auth module", () => {
@@ -52,6 +56,26 @@ describe("Auth", () => {
     });
 
     expect(loginResponse).toBe(true)
+
+    expect(accessTokenStorage.size).toBe(1);
+    expect(accessTokenStorage.has("accessToken")).toBeTruthy();
+  })
+
+  it("should properly refresh the tokens", async () => {
+    const accessTokenStorage = new Map();
+
+    const authClient = new Linguine.AuthClient(client, {
+      accessTokenStorage,
+    });
+
+    await authClient.logIn({
+      email: "test@example.com",
+      password: "password",
+    });
+    accessTokenStorage.delete("accessToken")
+
+    const refreshResponse = await authClient.refresh();
+    expect(refreshResponse).toBe(true)
 
     expect(accessTokenStorage.size).toBe(1);
     expect(accessTokenStorage.has("accessToken")).toBeTruthy();
