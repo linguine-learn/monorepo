@@ -2345,6 +2345,9 @@ packages:
   fbjs@3.0.5:
     resolution: {integrity: sha512-ztsSx77JBtkuMrEypfhgc3cI0+0h+svqeie7xHbh1k/IKdcydnvadp/mUaGgjAOXQmQSxsqgaRhS3q9fy+1kxg==}
 
+  fetch-cookie@3.1.0:
+    resolution: {integrity: sha512-s/XhhreJpqH0ftkGVcQt8JE9bqk+zRn4jF5mPJXWZeQMCI5odV9K+wEWYbnzFPHgQZlvPSMjS4n4yawWE8RINw==}
+
   fetch-retry@4.1.1:
     resolution: {integrity: sha512-e6eB7zN6UBSwGVwrbWVH+gdLnkW9WwHhmq2YDK1Sh30pzx1onRVGBvogTlUeWxwTa+L86NYdo4hFkh7O8ZjSnA==}
 
@@ -4210,6 +4213,13 @@ packages:
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
 
+  tldts-core@6.1.79:
+    resolution: {integrity: sha512-HM+Ud/2oQuHt4I43Nvjc213Zji/z25NSH5OkJskJwHXNtYh9DTRlHMDFhms9dFMP7qyve/yVaXFIxmcJ7TdOjw==}
+
+  tldts@6.1.79:
+    resolution: {integrity: sha512-wjlYwK8lC/WcywLWf3A7qbK07SexezXjTRVwuPWXHvcjD7MnpPS2RXY5rLO3g12a8CNc7Y7jQRQsV7XyuBZjig==}
+    hasBin: true
+
   tmp@0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}
     engines: {node: '>=0.6.0'}
@@ -4228,6 +4238,10 @@ packages:
   tough-cookie@4.1.4:
     resolution: {integrity: sha512-Loo5UUvLD9ScZ6jh8beX1T6sO1w2/MpCRpEP7V280GKMVUQ0Jzar2U3UJPsrdbziLEMMhu3Ujnq//rhiFuIeag==}
     engines: {node: '>=6'}
+
+  tough-cookie@5.1.1:
+    resolution: {integrity: sha512-Ek7HndSVkp10hmHP9V4qZO1u+pn1RU5sI0Fw+jCU3lyvuMZcgqsNgc6CmJJZyByK4Vm/qotGRJlfgAX8q+4JiA==}
+    engines: {node: '>=16'}
 
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
@@ -5983,6 +5997,7 @@ snapshots:
 
   '@linguine/client-sdk@file:../linguine-client-sdk':
     dependencies:
+      fetch-cookie: 3.1.0
       superstruct: 2.0.2
 
   '@nodelib/fs.scandir@2.1.5':
@@ -7504,6 +7519,11 @@ snapshots:
       ua-parser-js: 1.0.40
     transitivePeerDependencies:
       - encoding
+
+  fetch-cookie@3.1.0:
+    dependencies:
+      set-cookie-parser: 2.7.1
+      tough-cookie: 5.1.1
 
   fetch-retry@4.1.1: {}
 
@@ -9723,6 +9743,12 @@ snapshots:
 
   through@2.3.8: {}
 
+  tldts-core@6.1.79: {}
+
+  tldts@6.1.79:
+    dependencies:
+      tldts-core: 6.1.79
+
   tmp@0.0.33:
     dependencies:
       os-tmpdir: 1.0.2
@@ -9741,6 +9767,10 @@ snapshots:
       punycode: 2.3.1
       universalify: 0.2.0
       url-parse: 1.5.10
+
+  tough-cookie@5.1.1:
+    dependencies:
+      tldts: 6.1.79
 
   tr46@0.0.3: {}
 
