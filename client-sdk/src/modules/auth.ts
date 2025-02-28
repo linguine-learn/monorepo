@@ -1,53 +1,56 @@
-import { assert, object, size, string } from "superstruct"
-import { Client, FetchParameters } from "../client"
-import { LoginResponse, RefreshResponse, RegisterResponse } from "../types/responses"
+import { assert, object, size, string } from "superstruct";
+import { Client, FetchParameters } from "../client";
+import {
+  LoginResponse,
+  RefreshResponse,
+  RegisterResponse,
+} from "../types/responses";
 
 export type RegisterData = {
-  email: string,
-  username: string,
-  password: string,
-  retypedPassword: string
-}
+  email: string;
+  username: string;
+  password: string;
+  retypedPassword: string;
+};
 
 export type LoginData = {
-  email: string,
-  password: string,
-}
+  email: string;
+  password: string;
+};
 
 export type TokenStore = {
-  set: (key: string, value: string) => void,
-  get: (key: string) => string | null | undefined,
-  delete: (key: string) => void,
-}
+  set: (key: string, value: string) => void;
+  get: (key: string) => string | null | undefined;
+  delete: (key: string) => void;
+};
 
 export type AuthClientConfig = {
-  accessTokenStorage: TokenStore,
-}
+  accessTokenStorage: TokenStore;
+};
 
 export class AuthClient {
-  client: Client
-  config: AuthClientConfig
+  client: Client;
+  config: AuthClientConfig;
 
   constructor(client: Client, config: AuthClientConfig) {
     this.client = client;
-    this.config = config; 
+    this.config = config;
   }
 
-  async register(body : RegisterData): Promise<string | boolean> {
-
+  async register(body: RegisterData): Promise<string | boolean> {
     const RegisterDataValidator = object({
       email: size(string(), 1, 255),
       username: size(string(), 1, 50),
       password: size(string(), 8),
-      retypedPassword: size(string(), 8)
-    })
+      retypedPassword: size(string(), 8),
+    });
 
     assert(body, RegisterDataValidator);
 
     const response = await this.client.makeFetch<RegisterResponse>({
       route: "auth/register",
       method: "POST",
-      body: body
+      body: body,
     });
 
     return response.message === "Success!" ? true : response.message;
@@ -56,19 +59,19 @@ export class AuthClient {
   async logIn(body: LoginData): Promise<string | boolean> {
     const RegisterDataValidator = object({
       email: size(string(), 1, 255),
-      password: size(string(), 8)
-    })
+      password: size(string(), 8),
+    });
 
     assert(body, RegisterDataValidator);
 
     const response = await this.client.makeFetch<LoginResponse>({
       route: "auth/login",
       method: "POST",
-      body: body
+      body: body,
     });
-    
-    if(response.token) {
-      this.config.accessTokenStorage.set("accessToken", response.token)
+
+    if (response.token) {
+      this.config.accessTokenStorage.set("accessToken", response.token);
       return true;
     }
 
@@ -81,38 +84,41 @@ export class AuthClient {
       method: "POST",
     });
 
-    if(response.token) {
-      this.config.accessTokenStorage.set("accessToken", response.token)
+    if (response.token) {
+      this.config.accessTokenStorage.set("accessToken", response.token);
       return true;
     }
   }
 
   async makeFetch<Result>(parameters: FetchParameters): Promise<Result> {
-    const maybeValidAccessToken = this.config.accessTokenStorage.get("accessToken");
+    const maybeValidAccessToken =
+      this.config.accessTokenStorage.get("accessToken");
 
-    if(!maybeValidAccessToken) {
+    if (!maybeValidAccessToken) {
       throw new Error("No access token!");
     }
 
-    const [_, payload] = maybeValidAccessToken.split('.');
+    const [_, payload] = maybeValidAccessToken.split(".");
     const accessTokenPayload = JSON.parse(btoa(payload));
-    const isAccessTokenValid = accessTokenPayload["exp"] ? accessTokenPayload["exp"] <= Date.now() : false;
+    const isAccessTokenValid = accessTokenPayload["exp"]
+      ? accessTokenPayload["exp"] <= Date.now()
+      : false;
 
-    if(!isAccessTokenValid) {
-        await this.refresh();
+    if (!isAccessTokenValid) {
+      await this.refresh();
     }
-  
+
     const accessToken = this.config.accessTokenStorage.get("accessToken");
 
-    if(!accessToken) {
+    if (!accessToken) {
       throw new Error("Refresh failed");
     }
-  
+
     return this.client.makeFetch({
       ...parameters,
       headers: {
-        "Authorization": accessToken,
-      }
+        Authorization: accessToken,
+      },
     });
   }
 }

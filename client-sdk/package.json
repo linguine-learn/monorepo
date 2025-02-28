@@ -23,6 +23,7 @@
   "author": "",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "prettier": "3.5.2",
     "tsup": "^8.4.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.6"

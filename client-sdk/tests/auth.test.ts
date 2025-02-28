@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import makeFetchCookie from 'fetch-cookie';
+import makeFetchCookie from "fetch-cookie";
 
 import * as Linguine from "../src/index";
 
@@ -7,22 +7,22 @@ describe("Auth", () => {
   const fetcher = makeFetchCookie(fetch);
   const client = new Linguine.Client({
     baseUrl: "http://localhost:3000/",
-    fetcher
-  })
+    fetcher,
+  });
 
   it("should create an auth module", () => {
-    const store =  new Map<string, string>();
+    const store = new Map<string, string>();
 
     const storageHandler = {
       set: (key: string, value: string) => {
         store.set(key, value);
       },
       get: (key: string) => {
-        return store.get(key)
+        return store.get(key);
       },
       delete: (key: string) => {
         store.delete(key);
-      }
+      },
     } as Linguine.TokenStore;
 
     const config: Linguine.AuthClientConfig = {
@@ -32,7 +32,7 @@ describe("Auth", () => {
 
     expect(authClient.config).toEqual(config);
     expect(authClient.client).toBe(client);
-  })
+  });
 
   it("should create and login a user", async () => {
     const accessTokenStorage = new Map();
@@ -55,11 +55,11 @@ describe("Auth", () => {
       password: "password",
     });
 
-    expect(loginResponse).toBe(true)
+    expect(loginResponse).toBe(true);
 
     expect(accessTokenStorage.size).toBe(1);
     expect(accessTokenStorage.has("accessToken")).toBeTruthy();
-  })
+  });
 
   it("should properly refresh the tokens", async () => {
     const accessTokenStorage = new Map();
@@ -72,12 +72,12 @@ describe("Auth", () => {
       email: "test@example.com",
       password: "password",
     });
-    accessTokenStorage.delete("accessToken")
+    accessTokenStorage.delete("accessToken");
 
     const refreshResponse = await authClient.refresh();
-    expect(refreshResponse).toBe(true)
+    expect(refreshResponse).toBe(true);
 
     expect(accessTokenStorage.size).toBe(1);
     expect(accessTokenStorage.has("accessToken")).toBeTruthy();
-  })
-})
+  });
+});

@@ -1,2 +1,2 @@
-export * from "./client"
-export * from "./modules/auth"
+export * from "./client";
+export * from "./modules/auth";
