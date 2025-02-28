@@ -14,6 +14,7 @@ import Linguine.DB.Mutations (CreateUser (CreateUser))
 import Linguine.DB.Mutations qualified as DBM
 import Linguine.DB.Queries qualified as DBQ
 import Servant (Handler, JSON, ReqBody, Server, StdMethod (POST), UVerb, Union, WithStatus (WithStatus), respond, (:>))
+import Text.Regex.TDFA
 
 data RegisterResult = RegisterResult
   { message :: String
@@ -32,10 +33,11 @@ type RegisterAPI = "auth" :> "register" :> ReqBody '[JSON] RegisterData :> UVerb
 
 registerUser :: Pool Connection -> RegisterData -> Handler (Union '[WithStatus 200 RegisterResult, WithStatus 201 RegisterResult, WithStatus 500 RegisterResult])
 registerUser connectionPool registerData = do
-  let registerDataErrors =
+  let emailRegex = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$" :: String
+      registerDataErrors =
         [ (email registerData == "", "Email must not be empty!" :: String),
           ((length $ email registerData) > 255, "Please enter a valid email!"),
-          ('@' `notElem` email registerData, "Please enter a valid email!"),
+          (not $ (email registerData) =~ emailRegex :: Bool, "Please enter a valid email!"),
           (password registerData == "", "Password must not be empty!"),
           ((length $ password registerData) < 8, "Password must be at least 8 characters!"),
           ((password registerData /= retypedPassword registerData), "Passwords don't match!"),

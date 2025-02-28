@@ -45,7 +45,8 @@ library
                       jwt,
                       containers,
                       time,
-                      cookie
+                      cookie,
+                      regex-tdfa
 
     hs-source-dirs:   src
     default-language: GHC2024
