@@ -2,25 +2,19 @@
 
 module Linguine.Server where
 
-import Linguine.Auth.Register (RegisterAPI, registerApi)
-import Linguine.Auth.Login (loginApi, LoginAPI)
-
-import Network.Wai.Handler.Warp (run)
-
-import Data.Pool (Pool, newPool, defaultPoolConfig)
-import Data.ByteString.Lazy.Char8 (pack, toStrict)
-import Data.Data (Proxy(Proxy))
-
-import Database.PostgreSQL.Simple (connectPostgreSQL, close, Connection)
-
-import Control.Monad.IO.Class (MonadIO(liftIO))
-
-import Configuration.Dotenv (loadFile, defaultConfig)
+import Configuration.Dotenv (defaultConfig, loadFile)
 import Configuration.Dotenv.Environment (lookupEnv)
-
-import Servant.Server (Server, Application, serve)
-import Servant  ((:<|>)(..))
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Data.ByteString.Lazy.Char8 (pack, toStrict)
+import Data.Data (Proxy (Proxy))
+import Data.Pool (Pool, defaultPoolConfig, newPool)
+import Database.PostgreSQL.Simple (Connection, close, connectPostgreSQL)
+import Linguine.Auth.Login (LoginAPI, loginApi)
 import Linguine.Auth.Refresh (RefreshAPI, refreshApi)
+import Linguine.Auth.Register (RegisterAPI, registerApi)
+import Network.Wai.Handler.Warp (run)
+import Servant ((:<|>) (..))
+import Servant.Server (Application, Server, serve)
 
 type LinguineAPI = RegisterAPI :<|> LoginAPI :<|> RefreshAPI
 

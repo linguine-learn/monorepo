@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Linguine.DB.Queries (getUserByEmail, getUserById) where
 
-import Database.PostgreSQL.Simple (Connection, Only(Only), query)
-import qualified Linguine.DB.Models as M
+import Database.PostgreSQL.Simple (Connection, Only (Only), query)
+import Linguine.DB.Models qualified as M
 
 getUserByEmail :: Connection -> String -> IO [M.User]
 getUserByEmail conn email = do
