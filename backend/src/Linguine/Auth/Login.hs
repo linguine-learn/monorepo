@@ -60,29 +60,27 @@ makeRefreshCookie refreshToken expiryTime = do
 
 loginUser :: Pool Connection -> LoginData -> Handler (Union '[WithStatus 200 (Headers '[Header "Set-Cookie" String] LoginResult), WithStatus 500 LoginResult])
 loginUser connectionPool loginData = do
-  if (email loginData) == ""
-    then respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Email must not be empty!", token = Nothing}
-    else
-      if (password loginData) == ""
-        then respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Password must not be empty!", token = Nothing}
-        else do
-          users <- liftIO $ withResource connectionPool $ \conn -> DBQ.getUserByEmail conn (email loginData)
-          case users of
-            [user] -> do
-              let passwordCheck = checkPassword (mkPassword $ pack $ password loginData) (PasswordHash $ pack $ user_password user)
-              if passwordCheck == PasswordCheckFail
-                then respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Invalid username or password.", token = Nothing}
-                else
-                  if passwordCheck == PasswordCheckSuccess
-                    then do
-                      (accessToken, refreshToken, refreshTokenExpiryTime) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
-                      let refreshCookie = makeRefreshCookie refreshToken refreshTokenExpiryTime
+  let registerDataErrors =
+        [ (email loginData == "", "Email must not be empty!" :: String),
+          ((password loginData == ""), "Password must not be empty!")
+        ]
 
-                      respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult {message = "Success", token = Just accessToken}
-                    else do
-                      respond $ WithStatus @500 LoginResult {message = "Unkown error occured.", token = Nothing}
-            [] -> respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Invalid username or password.", token = Nothing}
-            _ -> respond $ WithStatus @500 LoginResult {message = "Unkown error occured.", token = Nothing}
+  case lookup True registerDataErrors of
+    Just errorMessage -> respond $ WithStatus @200 $ myNoHeader LoginResult {message = errorMessage, token = Nothing}
+    Nothing -> do
+      users <- liftIO $ withResource connectionPool $ \conn -> DBQ.getUserByEmail conn (email loginData)
+      case users of
+        [user] -> do
+          let passwordCheck = checkPassword (mkPassword $ pack $ password loginData) (PasswordHash $ pack $ user_password user)
+          case passwordCheck of
+            PasswordCheckFail -> respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Invalid username or password.", token = Nothing}
+            PasswordCheckSuccess -> do
+              (accessToken, refreshToken, refreshTokenExpiryTime) <- liftIO $ makeJwtPair (user_id user, user_refreshTokenVersion user)
+              let refreshCookie = makeRefreshCookie refreshToken refreshTokenExpiryTime
+
+              respond $ WithStatus @200 $ setRefreshCookie refreshCookie LoginResult {message = "Success", token = Just accessToken}
+        [] -> respond $ WithStatus @200 $ myNoHeader LoginResult {message = "Invalid username or password.", token = Nothing}
+        _ -> respond $ WithStatus @500 LoginResult {message = "Unkown error occured.", token = Nothing}
 
 loginApi :: Pool Connection -> Server LoginAPI
 loginApi connectionPool = loginUser connectionPool
