@@ -1,6 +1,6 @@
-module Main (main) where
+module Main where
 
-import Lib
+import Linguine.Server (serveLinguine)
 
 main :: IO ()
-main = someFunc
+main = serveLinguine
