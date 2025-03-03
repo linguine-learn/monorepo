@@ -17,6 +17,7 @@ library
     import:           warnings
     exposed-modules:  Linguine.Server,
                       Linguine.Config,
+                      Linguine.Auth.Middleware,
                       Linguine.Auth.OAuth,
                       Linguine.Auth.OAuth.Google,
                       Linguine.Auth.EmailPassword.Register,
@@ -44,7 +45,8 @@ library
                       mtl,
                       jwt,
                       containers,
-                      aeson
+                      aeson,
+                      wai
 
     hs-source-dirs:   src
     default-extensions: OverloadedStrings

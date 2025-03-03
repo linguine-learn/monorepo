@@ -5,13 +5,15 @@ import Control.Monad (forM_)
 import Data.ByteString.UTF8 as BSU
 import Data.Pool (Pool, defaultPoolConfig, newPool)
 import Database.PostgreSQL.Simple (Connection, close, connectPostgreSQL)
+import Linguine.Auth.Middleware (authMiddleware)
 import Linguine.Auth.OAuth.Google (googleOAuthServer)
 import System.Environment (getEnv, lookupEnv)
 import System.Exit (exitFailure)
 import Web.Scotty
 
-authenticatedRoutes :: ScottyM ()
-authenticatedRoutes = pure ()
+authenticatedRoutes :: Pool Connection -> ScottyM ()
+authenticatedRoutes pool = do
+  middleware $ authMiddleware pool
 
 publicRoutes :: Pool Connection -> ScottyM ()
 publicRoutes pool =
@@ -31,4 +33,4 @@ serveLinguine = do
   postgresUri <- getEnv "POSTGRES_URI"
   postgresPool <- newPool $ defaultPoolConfig (connectPostgreSQL $ BSU.fromString postgresUri) close 60 10
 
-  scotty 3000 $ authenticatedRoutes <> publicRoutes postgresPool
+  scotty 3000 $ authenticatedRoutes postgresPool <> publicRoutes postgresPool

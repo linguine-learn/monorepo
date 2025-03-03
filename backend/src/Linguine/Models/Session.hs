@@ -1,4 +1,4 @@
-module Linguine.Models.Session (Session (..), SessionValidationResult, createSession, generateSessionToken, validateSessionToken, invalidateSession, invalidateSessions) where
+module Linguine.Models.Session (Session (..), SessionValidationResult (..), createSession, generateSessionToken, validateSessionToken, invalidateSession, invalidateSessions) where
 
 import Control.Monad (void)
 import Data.Pool (Pool, withResource)
@@ -7,6 +7,7 @@ import Data.Time.Clock.POSIX (posixDayLength)
 import Data.UUID (toString)
 import Data.UUID.V4 (nextRandom)
 import Database.PostgreSQL.Simple (Connection, Only (Only), execute, query)
+import GHC.Generics (Generic)
 import Linguine.Models.User qualified as MUser
 
 data Session = Session
@@ -14,6 +15,7 @@ data Session = Session
     sessionUserId :: Int,
     sessionExpiresAt :: UTCTime
   }
+  deriving (Generic, Show)
 
 generateSessionToken :: IO String
 generateSessionToken = do
@@ -33,6 +35,11 @@ createSession pool sessionToken userId = do
 data SessionValidationResult
   = ValidSession {session :: Session, user :: MUser.User}
   | InvalidSession
+
+instance Show SessionValidationResult where
+  show (ValidSession session user) =
+    "ValidSession {session = " ++ show session ++ ", user = " ++ show user ++ "}"
+  show InvalidSession = "InvalidSession"
 
 invalidateSession :: Pool Connection -> String -> IO ()
 invalidateSession pool sessionId = do
@@ -57,12 +64,12 @@ invalidateSessions pool userId = do
 validateSessionToken :: Pool Connection -> String -> IO SessionValidationResult
 validateSessionToken pool sessionId = do
   withResource pool $ \conn -> do
-    rows <- query conn "SELECT user_session.id, user_session.user_id, user_session.expires_at, users.email. users.password, users.created_at FROM user_session INNER JOIN users ON users.id = user_session.user_id WHERE  user_session.id = ?" (Only sessionId) :: IO [(String, Int, UTCTime, String, String, UTCTime)]
+    rows <- query conn "SELECT user_session.id, user_session.user_id, user_session.expires_at, users.email, users.password, users.created_at FROM user_session INNER JOIN users ON users.id = user_session.user_id WHERE  user_session.id = ?" (Only sessionId) :: IO [(String, Int, UTCTime, String, Maybe String, UTCTime)]
     case rows of
       [row] -> do
         let (rSessionId, rUserId, rSessionExpiresAt, userEmail, userPassword, userCreatedAt) = row
             userSession = Session {sessionId = rSessionId, sessionUserId = rUserId, sessionExpiresAt = rSessionExpiresAt}
-            user = MUser.User {MUser.userId = rUserId, MUser.email = userEmail, MUser.password = Just userPassword, MUser.createdAt = userCreatedAt}
+            user = MUser.User {MUser.userId = rUserId, MUser.email = userEmail, MUser.password = userPassword, MUser.createdAt = userCreatedAt}
         currentTime <- getCurrentTime
         case currentTime >= rSessionExpiresAt of
           True -> do

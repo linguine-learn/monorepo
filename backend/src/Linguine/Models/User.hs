@@ -1,4 +1,4 @@
-module Linguine.Models.User (User (..), UserCreate(..), getUserByEmail, createUser) where
+module Linguine.Models.User (User (..), UserCreate (..), getUserByEmail, createUser) where
 
 import Data.Pool (Pool, withResource)
 import Data.Time (UTCTime)
@@ -11,7 +11,7 @@ data User = User
     password :: Maybe String,
     createdAt :: UTCTime
   }
-  deriving (Generic, FromRow)
+  deriving (Generic, Show, FromRow)
 
 data UserCreate = UserCreate
   { createEmail :: String,
@@ -29,7 +29,7 @@ getUserByEmail pool email = do
 createUser :: Pool Connection -> UserCreate -> IO (Maybe User)
 createUser pool userData = do
   withResource pool $ \conn -> do
-    users <-  query conn " INSERT INTO users (email, password) VALUES (?, ?) RETURNING id, email, password, created_at" (createEmail userData, createPassword userData) :: IO [User]
+    users <- query conn " INSERT INTO users (email, password) VALUES (?, ?) RETURNING id, email, password, created_at" (createEmail userData, createPassword userData) :: IO [User]
     case users of
       [user] -> pure $ Just user
       _ -> pure Nothing
