@@ -1,4 +1,4 @@
-module Linguine.Auth.Middleware (AppState (..), authMiddleware) where
+module Linguine.Auth.Middleware (authMiddleware) where
 
 import Data.ByteString.UTF8 as BSU
 import Data.Pool (Pool)
@@ -7,8 +7,6 @@ import Linguine.Models.Session (SessionValidationResult (InvalidSession), valida
 import Network.HTTP.Types (unauthorized401)
 import Network.Wai (Middleware, Request (requestHeaders), responseLBS)
 import Web.Cookie (Cookies, parseCookies)
-
-newtype AppState = AppState {userAndSession :: SessionValidationResult}
 
 authMiddleware :: Pool Connection -> Middleware
 authMiddleware pool app request respond = do
