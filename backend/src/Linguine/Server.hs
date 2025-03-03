@@ -10,10 +10,12 @@ import Linguine.Auth.OAuth.Google (googleOAuthServer)
 import System.Environment (getEnv, lookupEnv)
 import System.Exit (exitFailure)
 import Web.Scotty
+import Linguine.Models.Session (ValidSession)
+import qualified Data.Vault.Lazy as V
 
-authenticatedRoutes :: Pool Connection -> ScottyM ()
-authenticatedRoutes pool = do
-  middleware $ authMiddleware pool
+authenticatedRoutes :: V.Key ValidSession -> Pool Connection -> ScottyM ()
+authenticatedRoutes key pool = do
+  middleware $ authMiddleware key pool
 
 publicRoutes :: Pool Connection -> ScottyM ()
 publicRoutes pool =
@@ -32,5 +34,6 @@ serveLinguine = do
         exitFailure
   postgresUri <- getEnv "POSTGRES_URI"
   postgresPool <- newPool $ defaultPoolConfig (connectPostgreSQL $ BSU.fromString postgresUri) close 60 10
+  key <- V.newKey
 
-  scotty 3000 $ authenticatedRoutes postgresPool <> publicRoutes postgresPool
+  scotty 3000 $ authenticatedRoutes key postgresPool <> publicRoutes postgresPool

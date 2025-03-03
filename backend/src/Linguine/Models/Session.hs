@@ -1,4 +1,4 @@
-module Linguine.Models.Session (Session (..), SessionValidationResult (..), createSession, generateSessionToken, validateSessionToken, invalidateSession, invalidateSessions) where
+module Linguine.Models.Session (Session (..), SessionValidationResult (..), ValidSession (..), createSession, generateSessionToken, validateSessionToken, invalidateSession, invalidateSessions) where
 
 import Control.Monad (void)
 import Data.Pool (Pool, withResource)
@@ -32,14 +32,15 @@ createSession pool sessionToken userId = do
     pure ()
   pure session
 
+data ValidSession = ValidSession {session :: Session, user :: MUser.User} deriving (Generic, Show)
+
 data SessionValidationResult
-  = ValidSession {session :: Session, user :: MUser.User}
-  | InvalidSession
+  = Valid ValidSession 
+  | Invalid
 
 instance Show SessionValidationResult where
-  show (ValidSession session user) =
-    "ValidSession {session = " ++ show session ++ ", user = " ++ show user ++ "}"
-  show InvalidSession = "InvalidSession"
+  show (Valid validSession) = show validSession
+  show Invalid = "Invalid"
 
 invalidateSession :: Pool Connection -> String -> IO ()
 invalidateSession pool sessionId = do
@@ -74,13 +75,13 @@ validateSessionToken pool sessionId = do
         case currentTime >= rSessionExpiresAt of
           True -> do
             invalidateSession pool rSessionId
-            pure InvalidSession
+            pure Invalid
           False -> do
             let sessionExpiresAfterFifteenDays = currentTime >= (addUTCTime (-15 * posixDayLength) rSessionExpiresAt)
             case sessionExpiresAfterFifteenDays of
               True -> do
                 newExpiryTime <- increaseSessionDuration pool rSessionId (30 * posixDayLength)
                 let renewedSession = Session {sessionId = rSessionId, sessionUserId = rUserId, sessionExpiresAt = newExpiryTime}
-                pure $ ValidSession {session = renewedSession, user = user}
-              False -> pure $ ValidSession {session = userSession, user = user}
-      _ -> pure InvalidSession
+                pure $ Valid ValidSession {session = renewedSession, user = user}
+              False -> pure $ Valid ValidSession {session = userSession, user = user}
+      _ -> pure Invalid

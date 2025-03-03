@@ -46,7 +46,8 @@ library
                       jwt,
                       containers,
                       aeson,
-                      wai
+                      wai,
+                      vault
 
     hs-source-dirs:   src
     default-extensions: OverloadedStrings
