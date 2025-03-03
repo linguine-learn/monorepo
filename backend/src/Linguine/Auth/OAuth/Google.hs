@@ -110,7 +110,11 @@ validationCallbackHandler pool = do
                   status found302
                   redirectUrl <- liftIO $ getEnv "OAUTH_REDIRECT_URL"
                   setHeader "Location" (TL.fromStrict $ T.pack redirectUrl)
-                Nothing -> undefined
+                Nothing -> do
+                  -- TODO: Create new user
+                  -- TODO: Create session and session cookie
+                  -- TODO: Set session cookie and redirect
+                  undefined
             _ -> status badRequest400
         _ -> status badRequest400
     _ -> status badRequest400

@@ -1,4 +1,4 @@
-cabal-version:      3.14
+cabal-version:      3.12
 name:               backend
 version:            0.1.0.0
 -- synopsis:
@@ -8,7 +8,6 @@ maintainer:         n
 -- copyright:
 category:           Web
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
