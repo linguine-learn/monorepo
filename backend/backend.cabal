@@ -22,6 +22,8 @@ library
                       Linguine.Auth.OAuth,
                       Linguine.Auth.OAuth.Google,
                       Linguine.Auth.EmailPassword.Register,
+                      Linguine.Auth.EmailPassword.Login,
+                      Linguine.Auth.EmailPassword,
 
                       Linguine.Models.Session,
                       Linguine.Models.User
@@ -48,7 +50,9 @@ library
                       containers,
                       aeson,
                       wai,
-                      vault
+                      vault,
+                      password,
+                      email-validate
 
     hs-source-dirs:   src
     default-extensions: OverloadedStrings

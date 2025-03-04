@@ -6,6 +6,7 @@ import Data.ByteString.UTF8 as BSU
 import Data.Pool (Pool, defaultPoolConfig, newPool)
 import Data.Vault.Lazy qualified as V
 import Database.PostgreSQL.Simple (Connection, close, connectPostgreSQL)
+import Linguine.Auth.EmailPassword (emailPasswordAuthServer)
 import Linguine.Auth.Middleware (authMiddleware)
 import Linguine.Auth.OAuth.Google (googleOAuthServer)
 import Linguine.Models.Session (ValidSession)
@@ -18,8 +19,9 @@ authenticatedRoutes key pool = do
   middleware $ authMiddleware key pool
 
 publicRoutes :: Pool Connection -> ScottyM ()
-publicRoutes pool =
+publicRoutes pool = do
   googleOAuthServer pool
+  emailPasswordAuthServer pool
 
 serveLinguine :: IO ()
 serveLinguine = do
