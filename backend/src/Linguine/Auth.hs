@@ -1,14 +1,15 @@
 module Linguine.Auth (setSessionCookie, setSessionCookieAndRedirect) where
-import Linguine.Models.Session (Session(..))
-import Web.Scotty (ActionM, setHeader, status)
-import Web.Cookie
-import Data.ByteString.UTF8 as BSU
-import Linguine.Config (productionMode)
-import Web.Scotty.Cookie (setCookie)
-import Network.HTTP.Types (found302)
-import Data.Text.Internal.Lazy (Text)
 
-setSessionCookie :: Session -> ActionM()
+import Data.ByteString.UTF8 as BSU
+import Data.Text.Internal.Lazy (Text)
+import Linguine.Config (productionMode)
+import Linguine.Models.Session (Session (..))
+import Network.HTTP.Types (found302)
+import Web.Cookie
+import Web.Scotty (ActionM, setHeader, status)
+import Web.Scotty.Cookie (setCookie)
+
+setSessionCookie :: Session -> ActionM ()
 setSessionCookie session = do
   let sessionCookie =
         defaultSetCookie

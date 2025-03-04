@@ -11,6 +11,7 @@ import Data.Text.Encoding qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Time (secondsToDiffTime)
 import Database.PostgreSQL.Simple (Connection)
+import Linguine.Auth (setSessionCookieAndRedirect)
 import Linguine.Auth.OAuth (generateState, parseOIDCToken)
 import Linguine.Config (productionMode)
 import Linguine.Models.Session (createSession, generateSessionToken)
@@ -25,7 +26,6 @@ import URI.ByteString (URI, parseURI, serializeURIRef', strictURIParserOptions)
 import Web.Cookie
 import Web.Scotty (ActionM, ScottyM, get, queryParamMaybe, setHeader, status, text)
 import Web.Scotty.Cookie (getCookie, setCookie)
-import Linguine.Auth (setSessionCookieAndRedirect)
 
 uriToText :: URI -> TL.Text
 uriToText = TL.fromStrict . T.decodeUtf8 . serializeURIRef'
