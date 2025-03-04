@@ -35,7 +35,7 @@ createSession pool sessionToken userId = do
 data ValidSession = ValidSession {session :: Session, user :: MUser.User} deriving (Generic, Show)
 
 data SessionValidationResult
-  = Valid ValidSession 
+  = Valid ValidSession
   | Invalid
 
 instance Show SessionValidationResult where

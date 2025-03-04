@@ -4,14 +4,14 @@ import Configuration.Dotenv (defaultConfig, loadFile)
 import Control.Monad (forM_)
 import Data.ByteString.UTF8 as BSU
 import Data.Pool (Pool, defaultPoolConfig, newPool)
+import Data.Vault.Lazy qualified as V
 import Database.PostgreSQL.Simple (Connection, close, connectPostgreSQL)
 import Linguine.Auth.Middleware (authMiddleware)
 import Linguine.Auth.OAuth.Google (googleOAuthServer)
+import Linguine.Models.Session (ValidSession)
 import System.Environment (getEnv, lookupEnv)
 import System.Exit (exitFailure)
 import Web.Scotty
-import Linguine.Models.Session (ValidSession)
-import qualified Data.Vault.Lazy as V
 
 authenticatedRoutes :: V.Key ValidSession -> Pool Connection -> ScottyM ()
 authenticatedRoutes key pool = do
