@@ -17,6 +17,7 @@ library
     import:           warnings
     exposed-modules:  Linguine.Server,
                       Linguine.Config,
+                      Linguine.Auth,
                       Linguine.Auth.Middleware,
                       Linguine.Auth.OAuth,
                       Linguine.Auth.OAuth.Google,

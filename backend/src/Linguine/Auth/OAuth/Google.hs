@@ -13,7 +13,7 @@ import Data.Time (secondsToDiffTime)
 import Database.PostgreSQL.Simple (Connection)
 import Linguine.Auth.OAuth (generateState, parseOIDCToken)
 import Linguine.Config (productionMode)
-import Linguine.Models.Session (Session (sessionExpiresAt, sessionId), createSession, generateSessionToken)
+import Linguine.Models.Session (createSession, generateSessionToken)
 import Linguine.Models.User qualified as M
 import Network.HTTP.Client (newManager)
 import Network.HTTP.Conduit (tlsManagerSettings)
@@ -25,6 +25,7 @@ import URI.ByteString (URI, parseURI, serializeURIRef', strictURIParserOptions)
 import Web.Cookie
 import Web.Scotty (ActionM, ScottyM, get, queryParamMaybe, setHeader, status, text)
 import Web.Scotty.Cookie (getCookie, setCookie)
+import Linguine.Auth (setSessionCookieAndRedirect)
 
 uriToText :: URI -> TL.Text
 uriToText = TL.fromStrict . T.decodeUtf8 . serializeURIRef'
@@ -96,20 +97,8 @@ validationCallbackHandler pool = do
                 Just user -> do
                   sessionToken <- liftIO generateSessionToken
                   session <- liftIO $ createSession pool sessionToken (M.userId user)
-                  let sessionCookie =
-                        defaultSetCookie
-                          { setCookieName = "session",
-                            setCookiePath = Just "/",
-                            setCookieValue = BSU.fromString $ sessionId session,
-                            setCookieHttpOnly = True,
-                            setCookieSecure = productionMode,
-                            setCookieExpires = Just $ sessionExpiresAt session,
-                            setCookieSameSite = Just sameSiteLax
-                          }
-                  setCookie sessionCookie
-                  status found302
                   redirectUrl <- liftIO $ getEnv "OAUTH_REDIRECT_URL"
-                  setHeader "Location" (TL.fromStrict $ T.pack redirectUrl)
+                  setSessionCookieAndRedirect session (TL.fromStrict $ T.pack redirectUrl)
                 Nothing -> do
                   let userCreateData = M.UserCreate {M.createPassword = Nothing, M.createEmail = verifiedEmail}
                   maybeUser <- liftIO $ M.createUser pool userCreateData
@@ -117,20 +106,8 @@ validationCallbackHandler pool = do
                     Just user -> do
                       sessionToken <- liftIO generateSessionToken
                       session <- liftIO $ createSession pool sessionToken (M.userId user)
-                      let sessionCookie =
-                            defaultSetCookie
-                              { setCookieName = "session",
-                                setCookiePath = Just "/",
-                                setCookieValue = BSU.fromString $ sessionId session,
-                                setCookieHttpOnly = True,
-                                setCookieSecure = productionMode,
-                                setCookieExpires = Just $ sessionExpiresAt session,
-                                setCookieSameSite = Just sameSiteLax
-                              }
-                      setCookie sessionCookie
-                      status found302
                       redirectUrl <- liftIO $ getEnv "OAUTH_REDIRECT_URL"
-                      setHeader "Location" (TL.fromStrict $ T.pack redirectUrl)
+                      setSessionCookieAndRedirect session (TL.fromStrict $ T.pack redirectUrl)
                     _ -> do
                       status found302
                       redirectUrl <- liftIO $ getEnv "OAUTH_REDIRECT_FAILED_URL"
