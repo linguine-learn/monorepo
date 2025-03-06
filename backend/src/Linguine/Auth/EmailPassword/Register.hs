@@ -10,7 +10,7 @@ import GHC.Generics (Generic)
 import Linguine.Auth (setSessionCookie)
 import Linguine.Models.Session (createSession, generateSessionToken)
 import Linguine.Models.User qualified as M
-import Network.HTTP.Types (badRequest400, internalServerError500)
+import Network.HTTP.Types (badRequest400, internalServerError500, created201)
 import Web.Scotty (ActionM, json, jsonData, status)
 import Text.Email.Validate (isValid)
 import Data.ByteString.UTF8 qualified as BSU
@@ -66,6 +66,7 @@ emailPasswordRegisterHandler pool = do
               sessionToken <- liftIO generateSessionToken
               session <- liftIO $ createSession pool sessionToken (M.userId user)
               setSessionCookie session
+              status created201
               json RegisterResponse {success = True, message = "Successfully created user!"}
             Nothing -> do
               status internalServerError500
