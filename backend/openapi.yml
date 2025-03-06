@@ -1,0 +1,91 @@
+openapi: 3.1.1
+info:
+  title: Linguine API
+  version: 0.0.1
+  description: A specification for the Linguine backend, intended for code generation for various libraries
+paths:
+  /login:
+    post:
+      summary: Log in to an existing account
+      requestBody:
+        description: The required data for logging in.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        200:
+          description: Succesful login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        400:
+          description: Failed login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+  /register:
+    post:
+      summary: Register a new account
+      requestBody:
+        description: The required data for creating a new account
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        201:
+          description: Succesful creation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        400:
+          description: Invalid data 
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+
+components:
+  schemas:
+    RegisterRequest: 
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+            type: string
+        retypedPassword:
+            type: string
+    RegisterResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    LoginRequest: 
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+            type: string
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
