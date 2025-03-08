@@ -1,0 +1,10 @@
+import "Unit.pkl"
+/// The id of this course section
+sectionId: Int
+/// The id of this course section's parent
+sectionParentId: Int
+/// The name of this course section
+sectionName: String
+/// A short description of what this course section is about
+sectionDescription: String
+sectionUnits: List<Unit>

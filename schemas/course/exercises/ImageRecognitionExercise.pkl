@@ -1,0 +1,5 @@
+extends "../Exercise.pkl"
+
+images: List<String>
+choices: List<String>
+correctChoiceIndex: Int

@@ -1,0 +1,8 @@
+/// The ID of the course, to be set by the backend.
+courseId: Int
+/// The language the course is teaching.
+courseTargetLanguage: String
+/// The language the course is written in
+courseSourceLanguage: String
+/// the sections that make up this course, by ID
+courseSections: List<Int>

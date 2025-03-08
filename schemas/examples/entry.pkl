@@ -1,0 +1,57 @@
+import "../course/Course.pkl"
+import "../course/Section.pkl"
+import "../course/Unit.pkl"
+import "../course/exercises/ImageRecognitionExercise.pkl"
+
+course = (Course) {
+  courseId = 0
+  courseTargetLanguage = "es"
+  courseSourceLanguage = "en"
+  courseSections = List(0, 1)
+}
+
+section_0 = (Section) {
+  sectionId = 0
+  sectionParentId = 0
+  sectionName = "The basics"
+  sectionDescription = "Learn the basics of the language in order to have a strong foundation."
+  sectionUnits = List(
+    (Unit) {
+      unitId = 0
+      unitParentId = 0
+      unitTitle = "Describe the human body"
+      unitExercises = List(
+        new ImageRecognitionExercise {
+          exerciseType = "IMAGE_RECOGNITION"
+          images = List(
+            "https://example.com/courses/en-es/images/0",
+            "https://example.com/courses/en-es/images/1",
+            "https://example.com/courses/en-es/images/2",
+            "https://example.com/courses/en-es/images/3"
+          )
+          choices = List(
+            "El Ojo",
+            "El Mano",
+            "El Pelo",
+            "La Boca"
+          )
+          correctChoiceIndex = 0
+        }
+      )
+    }
+  )
+}
+
+section_1 = (Section) {
+  sectionId = 1
+  sectionParentId = 0
+  sectionName = "Your first stories"
+  sectionDescription = "Get your feet wet by learning through listening and reading."
+  sectionUnits = List(
+    (Unit) {
+      unitId = 0
+      unitParentId = 1
+      unitTitle = "Sandra's car trouble"
+    }
+  )
+}

@@ -1,0 +1,9 @@
+import "Exercise.pkl"
+/// The id of this course section unit 
+unitId: Int
+/// The id of this course section unit's parent
+unitParentId: Int
+/// The title of this unit
+unitTitle: String
+/// The exercises belonging to this unit
+unitExercises: List<Any>
