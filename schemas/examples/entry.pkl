@@ -31,7 +31,7 @@ section_0 = (Section) {
           )
           choices = List(
             "El Ojo",
-            "El Mano",
+            "La Mano",
             "El Pelo",
             "La Boca"
           )
