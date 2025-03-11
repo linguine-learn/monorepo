@@ -1,5 +1,6 @@
 extends "../Exercise.pkl"
 
+exerciseType = "IMAGE_RECOGNITION"
 images: List<String>
 choices: List<String>
 correctChoiceIndex: Int

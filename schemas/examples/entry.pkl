@@ -22,7 +22,6 @@ section_0 = (Section) {
       unitTitle = "Describe the human body"
       unitExercises = List(
         new ImageRecognitionExercise {
-          exerciseType = "IMAGE_RECOGNITION"
           images = List(
             "https://example.com/courses/en-es/images/0",
             "https://example.com/courses/en-es/images/1",
