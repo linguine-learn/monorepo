@@ -9,6 +9,7 @@ import Database.PostgreSQL.Simple (Connection, close, connectPostgreSQL)
 import Linguine.Auth.EmailPassword (emailPasswordAuthServer)
 import Linguine.Auth.Middleware (authMiddleware)
 import Linguine.Auth.OAuth.Google (googleOAuthServer)
+import Linguine.Courses (coursesServer)
 import Linguine.Models.Session (ValidSession)
 import System.Environment (getEnv, lookupEnv)
 import System.Exit (exitFailure)
@@ -17,6 +18,9 @@ import Web.Scotty
 authenticatedRoutes :: V.Key ValidSession -> Pool Connection -> ScottyM ()
 authenticatedRoutes key pool = do
   middleware $ authMiddleware key pool
+  -- Routes must still be prefixed with /auth/
+
+  coursesServer pool
 
 publicRoutes :: Pool Connection -> ScottyM ()
 publicRoutes pool = do

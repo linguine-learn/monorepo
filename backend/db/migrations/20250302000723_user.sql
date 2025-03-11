@@ -3,7 +3,7 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password TEXT,
-    created_at TIMESTAMPTZ default now()
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE TABLE user_session (

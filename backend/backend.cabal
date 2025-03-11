@@ -17,6 +17,7 @@ library
     import:           warnings
     exposed-modules:  Linguine.Server,
                       Linguine.Config,
+
                       Linguine.Auth,
                       Linguine.Auth.Middleware,
                       Linguine.Auth.OAuth,
@@ -25,8 +26,12 @@ library
                       Linguine.Auth.EmailPassword.Login,
                       Linguine.Auth.EmailPassword,
 
+                      Linguine.Courses,
+                      Linguine.Courses.Read,
+
                       Linguine.Models.Session,
-                      Linguine.Models.User
+                      Linguine.Models.User,
+                      Linguine.Models.Course
     -- other-modules:
     -- other-extensions:
     build-depends:    base ^>=4.20.0.0,
