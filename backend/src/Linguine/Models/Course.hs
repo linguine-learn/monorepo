@@ -3,7 +3,7 @@ module Linguine.Models.Course (getCourses, getCourseById) where
 import Data.Aeson (ToJSON)
 import Data.Pool (Pool, withResource)
 import Data.Time (UTCTime)
-import Database.PostgreSQL.Simple (Connection, FromRow, query_, query, Only (Only))
+import Database.PostgreSQL.Simple (Connection, FromRow, Only (Only), query, query_)
 import GHC.Generics (Generic)
 
 data Course = Course
@@ -23,7 +23,7 @@ getCourses pool =
 getCourseById :: Pool Connection -> Int -> IO (Maybe Course)
 getCourseById pool courseId =
   withResource pool $ \conn -> do
-   courses <- query conn "SELECT id, source_language, target_language, created_at, uri from courses where id = ?" (Only courseId) :: IO [Course]
-   case courses of
-    [course] -> pure $ Just course
-    _ -> pure Nothing
+    courses <- query conn "SELECT id, source_language, target_language, created_at, uri from courses where id = ?" (Only courseId) :: IO [Course]
+    case courses of
+      [course] -> pure $ Just course
+      _ -> pure Nothing
