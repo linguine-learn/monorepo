@@ -7,7 +7,7 @@ import Database.PostgreSQL.Simple (Connection, FromRow, Only (Only), query, quer
 import GHC.Generics (Generic)
 
 data Course = Course
-  { courseId :: Int,
+  { courseId :: String,
     courseSourceLanguage :: String,
     courseTargetLanguage :: String,
     courseCreatedAt :: UTCTime,
@@ -20,7 +20,7 @@ getCourses pool =
   withResource pool $ \conn -> do
     query_ conn "SELECT id, source_language, target_language, created_at, uri from courses" :: IO [Course]
 
-getCourseById :: Pool Connection -> Int -> IO (Maybe Course)
+getCourseById :: Pool Connection -> String -> IO (Maybe Course)
 getCourseById pool courseId =
   withResource pool $ \conn -> do
     courses <- query conn "SELECT id, source_language, target_language, created_at, uri from courses where id = ?" (Only courseId) :: IO [Course]

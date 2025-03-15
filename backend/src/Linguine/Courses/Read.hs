@@ -14,6 +14,6 @@ getAllCoursesHandler pool = do
 -- TODO: look into returning course JSON instead of metadata
 getSingleCourseHandler :: Pool Connection -> ActionM ()
 getSingleCourseHandler pool = do
-  courseId :: Int <- pathParam "courseId"
+  courseId :: String <- pathParam "courseId"
   maybeCourse <- liftIO $ getCourseById pool courseId
   json maybeCourse
